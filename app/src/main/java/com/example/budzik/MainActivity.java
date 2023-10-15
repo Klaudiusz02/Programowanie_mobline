@@ -1,23 +1,23 @@
 package com.example.budzik;
 
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.view.View;
-
-import androidx.core.view.WindowCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-
 import com.example.budzik.databinding.ActivityMainBinding;
-
 import android.view.Menu;
 import android.view.MenuItem;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.core.view.WindowCompat;
+import com.example.budzik.R;
+import com.google.android.material.navigation.NavigationView;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,28 +45,38 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.nav_sleep) {
+                    NavHostFragment.findNavController((Fragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main))
+                            .navigate(R.id.action_FirstFragment_to_SecondFragment);
+                } else if (id == R.id.nav_alarm) {
+                    NavHostFragment.findNavController((Fragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main))
+                            .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                }
+                return true;
+            }
+        });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
