@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/FirstFragment"
         android:name="com.example.budzik.FirstFragment"
-        android:label="@string/first_fragment_label"
+        android:label="Moje Alarmy"
         tools:layout="@layout/fragment_first">
 
         <action
@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/SecondFragment"
         android:name="com.example.budzik.SecondFragment"
-        android:label="@string/second_fragment_label"
+        android:label="Mój Sen"
         tools:layout="@layout/fragment_second">
 
         <action

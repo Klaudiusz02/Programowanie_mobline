@@ -3,6 +3,8 @@ package com.example.budzik;
 import android.os.Bundle;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -60,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
                     NavHostFragment.findNavController((Fragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main))
                             .navigate(R.id.action_SecondFragment_to_FirstFragment);
                 }
+                drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
         });
