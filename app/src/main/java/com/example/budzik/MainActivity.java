@@ -1,5 +1,8 @@
 package com.example.budzik;
 
+import static android.app.PendingIntent.getActivity;
+
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,11 +15,15 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.budzik.databinding.ActivityMainBinding;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.core.view.WindowCompat;
 import com.example.budzik.R;
 import com.google.android.material.navigation.NavigationView;
 import android.view.MenuItem;
+import android.widget.TimePicker;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
@@ -29,6 +36,34 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*setContentView(R.layout.activity_main);
+
+        // Znajdź przycisk FloatingActionButton
+        FloatingActionButton fab = findViewById(R.id.fab);
+
+        // Ustaw listener na kliknięcie przycisku
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTimePickerDialog();
+            }
+
+            private void showTimePickerDialog() {
+                TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        // Tutaj możesz wykorzystać wybraną godzinę i minutę
+                        String selectedTime = hourOfDay + ":" + minute;
+                        // Możesz zrobić coś z wybranym czasem, np. wyświetlić go na ekranie
+                        // W tym przypadku, możesz zaimplementować wyświetlenie wybranej godziny w polu TextView
+                    }
+                }, 12, 0, true); // Ustawiamy początkową godzinę i minutę
+
+                timePickerDialog.show(); // Pokazujemy dialog
+            }
+        });*/
+
+
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -39,14 +74,7 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAnchorView(R.id.fab)
-                        .setAction("Action", null).show();
-            }
-        });
+
 
 
         NavigationView navigationView = findViewById(R.id.nav_view);
