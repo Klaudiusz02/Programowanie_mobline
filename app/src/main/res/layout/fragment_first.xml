@@ -17,14 +17,10 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
+                    android:id="@+id/container"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Tu będą alarmy"
-                            android:padding="16dp"/>
 
                 </LinearLayout>
         </androidx.core.widget.NestedScrollView>
