@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import android.app.TimePickerDialog;
 
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -38,7 +39,7 @@ public class FirstFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_first, container, false);
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
-
+        LinearLayout containerLayout = view.findViewById(R.id.container);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,13 +57,8 @@ public class FirstFragment extends Fragment {
                         new TimePickerDialog.OnTimeSetListener() {
                             @Override
                             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-
-                                Switch switchButton = new Switch(requireContext());
-                                switchButton.setChecked(false);
-
-// Tworzenie CardView
                                 CardView cardView = new CardView(requireContext());
-                                int heightInPixels = 200;
+                                int heightInPixels = 300;
                                 int leftMargin = 16;
                                 int topMargin = 8;
                                 int rightMargin = 16;
@@ -80,31 +76,41 @@ public class FirstFragment extends Fragment {
                                 cardView.setRadius(16);
 
                                 LinearLayout innerLayout = new LinearLayout(requireContext());
-                                innerLayout.setOrientation(LinearLayout.HORIZONTAL);
-                                innerLayout.setPadding(16, 16, 16, 16);
+                                innerLayout.setOrientation(LinearLayout.VERTICAL);
+                                innerLayout.setPadding(16,16,16,16);
 
                                 TextView textView = new TextView(requireContext());
-                                textView.setText(selectedHour + ":" + selectedMinute);
+                                String formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute);
+                                textView.setText(formattedTime);
                                 textView.setTextSize(18);
                                 textView.setPadding(16, 16, 16, 16);
                                 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeInSp);
 
-                                LinearLayout.LayoutParams textLayoutParams = new LinearLayout.LayoutParams(
-                                        0,
+                                Switch switchButton = new Switch(requireContext());
+                                switchButton.setChecked(true);
+                                switchButton.setThumbResource(R.drawable.custom_thumb);
+                                switchButton.setTrackResource(R.drawable.custom_track);
+
+                                Button deleteButton = new Button(requireContext());
+                                deleteButton.setText("Usuń");
+                                deleteButton.setLayoutParams(new LinearLayout.LayoutParams(
                                         LinearLayout.LayoutParams.WRAP_CONTENT,
-                                        1.0f
-                                );
-                                textView.setLayoutParams(textLayoutParams);
-                                switchButton.setLayoutParams(textLayoutParams);
+                                        LinearLayout.LayoutParams.WRAP_CONTENT
+                                ));
+                                deleteButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        containerLayout.removeView(cardView);
+                                    }
+                                });
 
                                 innerLayout.addView(textView);
                                 innerLayout.addView(switchButton);
+                                innerLayout.addView(deleteButton);
 
                                 cardView.addView(innerLayout);
 
-                                LinearLayout container = requireView().findViewById(R.id.container);
-                                container.addView(cardView);
-
+                                containerLayout.addView(cardView);
                             }
                         },
                         hour, minute, true);
@@ -112,6 +118,7 @@ public class FirstFragment extends Fragment {
                 timePickerDialog.show();
             }
         });
+
         return view;
 
     }
