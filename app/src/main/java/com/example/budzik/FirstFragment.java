@@ -134,6 +134,15 @@ public class FirstFragment extends Fragment {
         Switch switchButton = new Switch(requireContext());
         switchButton.setChecked(state.equals("Włączony"));
 
+        switchButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(time, isChecked ? "Włączony" : "Wyłączony");
+                editor.apply();
+            }
+        });
+
         switchButton.setThumbResource(R.drawable.custom_thumb);
         switchButton.setTrackResource(R.drawable.custom_track);
 
