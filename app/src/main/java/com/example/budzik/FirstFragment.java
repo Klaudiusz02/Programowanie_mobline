@@ -1,10 +1,8 @@
 package com.example.budzik;
 
 import android.app.AlarmManager;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -22,19 +20,19 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.ToggleButton;
+import android.widget.Toast;
 
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
-import androidx.navigation.fragment.NavHostFragment;
 
-import com.example.budzik.databinding.FragmentFirstBinding;
-import com.google.android.material.snackbar.Snackbar;
-
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 public class FirstFragment extends Fragment {
@@ -76,11 +74,8 @@ public class FirstFragment extends Fragment {
                 new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                        // Pobierz zaznaczone dni tygodnia
-                        String selectedDays = showDaysOfWeekDialog();
-
                         // Dodaj alarm z wybraną godziną i dniami tygodnia
-                        addAlarm(selectedHour, selectedMinute, selectedDays);
+                        addAlarm(selectedHour, selectedMinute);
                     }
                 },
                 hour, minute, true);
@@ -88,75 +83,8 @@ public class FirstFragment extends Fragment {
         timePickerDialog.show();
     }
 
-    private String showDaysOfWeekDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Wybierz dni tygodnia");
 
-        // Utwórz kontener na CheckBox-y
-        LinearLayout layout = new LinearLayout(requireContext());
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(16, 16, 16, 16);
-
-        String[] daysOfWeek = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-
-        // Dodaj CheckBox-y do układu
-        for (String day : daysOfWeek) {
-            CheckBox checkBox = new CheckBox(requireContext());
-            checkBox.setText(day);
-            checkBox.setTextSize(18);
-            checkBox.setPadding(0, 8, 0, 8);
-            layout.addView(checkBox);
-        }
-
-        builder.setView(layout);
-
-        final StringBuilder selectedDays = new StringBuilder();
-
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Zapisz zaznaczone dni tygodnia
-                selectedDays.setLength(0); // Wyczyść istniejącą zawartość
-
-                for (int i = 0; i < layout.getChildCount(); i++) {
-                    CheckBox checkBox = (CheckBox) layout.getChildAt(i);
-                    if (checkBox.isChecked()) {
-                        selectedDays.append(checkBox.getText()).append(",");
-                    }
-                }
-
-                if (selectedDays.length() > 0) {
-                    // Usuń ostatni przecinek
-                    selectedDays.deleteCharAt(selectedDays.length() - 1);
-                }
-            }
-        });
-
-        builder.setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        AlertDialog dialog = builder.create();
-
-        // Ustaw niestandardowy rozmiar okna dialogowego
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-                int height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                dialog.getWindow().setLayout(600,height);
-            }
-        });
-
-        dialog.show();
-
-        return selectedDays.toString();
-    }
-
-
-    private void addAlarm(int hour, int minute, String selectedDays) {
+    private void addAlarm(int hour, int minute) {
         Calendar calendar = Calendar.getInstance();
         int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
         int currentMinute = calendar.get(Calendar.MINUTE);
@@ -167,20 +95,70 @@ public class FirstFragment extends Fragment {
             calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
 
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, 0);
-
         String formattedTime = String.format("%02d:%02d", hour, minute);
         String alarmState = "Włączony";
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(formattedTime, alarmState + "|" + selectedDays);
+        editor.putString(formattedTime, alarmState);
         editor.apply();
 
-        createAlarmCard(formattedTime, alarmState, selectedDays);
+        // Przeprowadź sortowanie alarmów po dodaniu nowego alarmu
+        List<Map.Entry<String, ?>> sortedAlarms = sortAlarmsByTime(sharedPreferences.getAll());
+
+        // Usuń wszystkie karty i utwórz je ponownie z posortowaną listą alarmów
+        containerLayout.removeAllViews();
+        for (Map.Entry<String, ?> entry : sortedAlarms) {
+            String[] values = entry.getValue().toString().split("\\|");
+            String time = entry.getKey();
+            String state = values[0];
+            createAlarmCard(time, state);
+        }
+
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
 
         setAlarm(calendar.getTimeInMillis(), formattedTime);
+
+        // Oblicz czas do uruchomienia alarmu i wyświetl toast
+        calculateAndShowTimeToAlarm(calendar.getTimeInMillis());
+    }
+
+    private void calculateAndShowTimeToAlarm(long alarmTimeInMillis) {
+        long currentTimeInMillis = System.currentTimeMillis();
+        long timeDifference = alarmTimeInMillis - currentTimeInMillis;
+
+        if (timeDifference > 0) {
+            long secondsToAlarm = timeDifference / 1000;
+            long minutesToAlarm = (secondsToAlarm + 59) / 60; // Zaokrąglanie w górę
+            long hoursToAlarm = minutesToAlarm / 60;
+
+            long remainingMinutes = minutesToAlarm % 60;
+
+            // Jeśli czas do alarmu jest mniej niż godzina, wyświetl minuty
+            if (hoursToAlarm == 0) {
+                String toastMessage = String.format("Czas do alarmu: %d minut", remainingMinutes);
+                Toast.makeText(requireContext(), toastMessage, Toast.LENGTH_LONG).show();
+            } else {
+                // Wyświetl czas w godzinach i minutach
+                String toastMessage = String.format("Czas do alarmu: %d godzin i %02d minut", hoursToAlarm, remainingMinutes);
+                Toast.makeText(requireContext(), toastMessage, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    // Metoda do sortowania alarmów według czasu
+    private List<Map.Entry<String, ?>> sortAlarmsByTime(Map<String, ?> alarmsMap) {
+        List<Map.Entry<String, ?>> sortedAlarms = new ArrayList<>(alarmsMap.entrySet());
+
+        Collections.sort(sortedAlarms, new Comparator<Map.Entry<String, ?>>() {
+            @Override
+            public int compare(Map.Entry<String, ?> entry1, Map.Entry<String, ?> entry2) {
+                return entry1.getKey().compareTo(entry2.getKey());
+            }
+        });
+
+        return sortedAlarms;
     }
 
 
@@ -201,16 +179,27 @@ public class FirstFragment extends Fragment {
     private void restoreAlarms() {
         Map<String, ?> alarmsMap = sharedPreferences.getAll();
 
-        for (Map.Entry<String, ?> entry : alarmsMap.entrySet()) {
+        // Create a list to store the alarms
+        List<Map.Entry<String, ?>> sortedAlarms = new ArrayList<>(alarmsMap.entrySet());
+
+        // Sort the alarms based on their keys (time)
+        Collections.sort(sortedAlarms, new Comparator<Map.Entry<String, ?>>() {
+            @Override
+            public int compare(Map.Entry<String, ?> entry1, Map.Entry<String, ?> entry2) {
+                return entry1.getKey().compareTo(entry2.getKey());
+            }
+        });
+
+        for (Map.Entry<String, ?> entry : sortedAlarms) {
             String[] values = entry.getValue().toString().split("\\|");
             String time = entry.getKey();
             String state = values[0];
             String selectedDays = values.length > 1 ? values[1] : "";
-            createAlarmCard(time, state, selectedDays);
+            createAlarmCard(time, state);
         }
     }
 
-    private void createAlarmCard(String time, String state, String selectedDays) {
+    private void createAlarmCard(String time, String state) {
         // Tworzenie karty alarmu
         CardView cardView = new CardView(requireContext());
         int heightInPixels = 300;
@@ -251,7 +240,7 @@ public class FirstFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(time, isChecked ? "Włączony|" + selectedDays : "Wyłączony|" + selectedDays);
+                editor.putString(time, isChecked ? "Włączony" : "Wyłączony");
                 editor.apply();
             }
         });
@@ -276,31 +265,11 @@ public class FirstFragment extends Fragment {
             }
         });
 
-        // Dodawanie checkboxów dni tygodnia
-        LinearLayout checkBoxLayout = new LinearLayout(requireContext());
-        checkBoxLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-        checkBoxLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-        String[] daysOfWeek = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-        for (String day : daysOfWeek) {
-            CheckBox checkBox = new CheckBox(requireContext());
-            checkBox.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-            checkBox.setText(day);
-            checkBox.setChecked(selectedDays.contains(day));
-            checkBoxLayout.addView(checkBox);
-        }
 
         // Dodawanie widoków do układu wewnętrznego
         innerLayout.addView(textView);
         innerLayout.addView(switchButton);
         innerLayout.addView(deleteButton);
-        innerLayout.addView(checkBoxLayout);
 
         // Dodawanie układu wewnętrznego do karty
         cardView.addView(innerLayout);
