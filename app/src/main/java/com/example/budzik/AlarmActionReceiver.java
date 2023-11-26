@@ -8,16 +8,14 @@ import android.widget.Toast;
 
 public class AlarmActionReceiver extends BroadcastReceiver {
 
-    // Define an interface for the callback
     public interface MediaPlayerCallback {
         void stopMediaPlayer();
     }
 
-    private MediaPlayerCallback mediaPlayerCallback;
+    private static MediaPlayerCallback mediaPlayerCallback;
 
-    // Setter for the callback
     public void setMediaPlayerCallback(MediaPlayerCallback callback) {
-        this.mediaPlayerCallback = callback;
+        mediaPlayerCallback = callback;
     }
 
     @Override
@@ -28,12 +26,10 @@ public class AlarmActionReceiver extends BroadcastReceiver {
         if (action != null && alarmTime != null) {
             switch (action) {
                 case "SNOOZE_ACTION":
-                    // Obsługa akcji Drzemka
                     handleSnooze(context, alarmTime);
                     break;
 
                 case "DISMISS_ACTION":
-                    // Obsługa akcji Wyłącz
                     handleDismiss(context, alarmTime);
                     break;
             }
@@ -42,9 +38,7 @@ public class AlarmActionReceiver extends BroadcastReceiver {
 
     private void handleSnooze(Context context, String alarmTime) {
         // Tutaj dodaj kod obsługujący akcję Drzemka
-        // Na przykład, możesz ustawić nowy alarm na krótszy czas
         Toast.makeText(context, "Akcja Drzemka. Alarm o " + alarmTime + " zostanie przesunięty.", Toast.LENGTH_SHORT).show();
-
         // Dodaj dodatkową logikę związana z obsługą akcji Drzemka
     }
 
@@ -60,8 +54,10 @@ public class AlarmActionReceiver extends BroadcastReceiver {
         }
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            // Anuluj powiadomienie o określonym ID (1 w tym przypadku)
+            notificationManager.cancel(1);
 
-        // Anuluj powiadomienie o określonym ID (1 w tym przypadku)
-        notificationManager.cancel(1);
+        }
     }
 }

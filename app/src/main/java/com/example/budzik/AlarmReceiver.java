@@ -1,4 +1,3 @@
-
 package com.example.budzik;
 
 import android.app.Notification;
@@ -6,20 +5,40 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
-import android.net.Uri;
+import android.media.MediaPlayer;
 import android.os.Build;
-
+import android.provider.Settings;
+import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    private static MediaPlayer mediaPlayer;
+    private static AlarmActionReceiver alarmActionReceiver;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String alarmTime = intent.getStringExtra("ALARM_TIME");
+
+        // Inicjalizuj AlarmActionReceiver tylko raz
+        if (alarmActionReceiver == null) {
+            alarmActionReceiver = new AlarmActionReceiver();
+        }
+
+        // Przekazanie referencji do AlarmReceiver
+        alarmActionReceiver.setMediaPlayerCallback(new AlarmActionReceiver.MediaPlayerCallback() {
+            @Override
+            public void stopMediaPlayer() {
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                }
+            }
+        });
 
         // Intenty dla akcji przycisków
         Intent snoozeIntent = new Intent(context, AlarmActionReceiver.class);
@@ -32,6 +51,12 @@ public class AlarmReceiver extends BroadcastReceiver {
         dismissIntent.putExtra("ALARM_TIME", alarmTime);
         PendingIntent dismissPendingIntent = PendingIntent.getBroadcast(context, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // Odtwórz dźwięk w trybie pętli
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.alarm);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.start();
+        }
 
         // Utwórz powiadomienie
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -40,21 +65,19 @@ public class AlarmReceiver extends BroadcastReceiver {
         CharSequence name = "YOUR_CHANNEL_NAME";
         String description = "YOUR_CHANNEL_DESCRIPTION";
         int importance = NotificationManager.IMPORTANCE_HIGH;
-        Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/raw/alarm.mp3");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(description);
+            mChannel.enableLights(true);
+            mChannel.enableVibration(true);
 
             AudioAttributes attributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build();
 
-
-            mChannel.setDescription(description);
-            mChannel.enableLights(true);
-            mChannel.enableVibration(true);
-            mChannel.setSound(soundUri, attributes); // Ustaw niestandardowy dźwięk
+            mChannel.setSound(Settings.System.DEFAULT_NOTIFICATION_URI, attributes);
 
             if (notificationManager != null)
                 notificationManager.createNotificationChannel(mChannel);
@@ -68,7 +91,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(false)
                 .setOngoing(true)
-                .setSound(soundUri)
+
+                // Ustaw dźwięk powiadomienia
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
 
                 // Dodaj akcję dla przycisku Drzemka
                 .addAction(R.drawable.baseline_add_24, "Drzemka", snoozePendingIntent)
@@ -77,6 +102,5 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .addAction(R.drawable.baseline_add_24, "Wyłącz", dismissPendingIntent);
 
         notificationManager.notify(1, builder.build());
-
     }
 }
