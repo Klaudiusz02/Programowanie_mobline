@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Przycisk wyboru tła -->
+
     <Button
         android:id="@+id/buttonChooseBackground"
         android:layout_width="match_parent"
@@ -14,7 +14,6 @@
         android:textColor="@android:color/white"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Przycisk dodawania niestandardowego alarmu -->
     <Button
         android:id="@+id/buttonAddCustomAlarm"
         android:layout_width="match_parent"
