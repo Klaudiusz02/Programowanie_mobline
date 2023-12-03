@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/SecondFragment"
         android:name="com.example.budzik.SecondFragment"
-        android:label="Mój Sen"
+        android:label="Ustawienia"
         tools:layout="@layout/fragment_second">
 
         <action

@@ -2,6 +2,7 @@ package com.example.budzik;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,11 +11,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import android.app.TimePickerDialog;
-
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
@@ -25,7 +22,6 @@ import android.widget.Toast;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -199,6 +195,29 @@ public class FirstFragment extends Fragment {
         }
     }
 
+    private void deleteAlarm(String time, CardView cardView) {
+        containerLayout.removeView(cardView);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove(time);
+        editor.apply();
+
+        // Cancel the PendingIntent associated with the deleted alarm
+        cancelAlarm(time);
+    }
+
+    private void cancelAlarm(String alarmTime) {
+        Intent alarmIntent = new Intent(requireContext(), AlarmReceiver.class);
+        alarmIntent.putExtra("ALARM_TIME", alarmTime);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager alarmManager = (AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+            pendingIntent.cancel();
+        }
+    }
+
     private void createAlarmCard(String time, String state) {
         // Tworzenie karty alarmu
         CardView cardView = new CardView(requireContext());
@@ -258,13 +277,9 @@ public class FirstFragment extends Fragment {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                containerLayout.removeView(cardView);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.remove(time);
-                editor.apply();
+                deleteAlarm(time, cardView);
             }
         });
-
 
         // Dodawanie widoków do układu wewnętrznego
         innerLayout.addView(textView);
@@ -288,5 +303,4 @@ public class FirstFragment extends Fragment {
         super.onDestroyView();
         //binding = null;
     }
-
 }
