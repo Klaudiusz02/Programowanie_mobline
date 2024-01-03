@@ -28,7 +28,6 @@ import com.example.budzik.databinding.FragmentSecondBinding;
 public class SecondFragment extends Fragment implements SensorEventListener {
 
     private FragmentSecondBinding binding;
-    private String selectedMp3Uri;
     private SharedPreferences preferences;
     private SensorManager sensorManager;
     private Sensor lightSensor;
@@ -47,14 +46,10 @@ public class SecondFragment extends Fragment implements SensorEventListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        int selectedBackground = getSelectedBackground();
-        if (selectedBackground == 2) {
-            initializeLightSensor();
-        } else {
-            setAppTheme(selectedBackground);
-        }
+        // Usuń kod związany z ustawianiem motywu
     }
 
+    @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -64,54 +59,20 @@ public class SecondFragment extends Fragment implements SensorEventListener {
             actionBar.setDisplayHomeAsUpEnabled(false);
         }
 
-        Button buttonChooseBackground = view.findViewById(R.id.buttonChooseBackground);
-        buttonChooseBackground.setOnClickListener(v -> showBackgroundOptionsDialog());
-
         Button buttonAddCustomAlarm = view.findViewById(R.id.buttonAddCustomAlarm);
         buttonAddCustomAlarm.setOnClickListener(v -> openFilePickerForMp3());
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (sensorManager != null) {
-            sensorManager.unregisterListener(this);
-        }
-        binding = null;
+    public void onResume() {
+        super.onResume();
+        initializeLightSensor();
     }
 
-    private void showBackgroundOptionsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Wybierz motyw aplikacji")
-                .setSingleChoiceItems(new CharSequence[]{"Jasny", "Ciemny", "Tryb sensora"}, getSelectedBackground(),
-                        (dialog, which) -> {
-                            saveSelectedBackground(which);
-                            if (which == 2) {
-                                initializeLightSensor();
-                            } else {
-                                setAppTheme(which);
-                            }
-                            dialog.dismiss();
-                        })
-                .setNegativeButton("Anuluj", (dialog, which) -> dialog.dismiss());
-
-        builder.create().show();
-    }
-
-    private int getSelectedBackground() {
-        return preferences.getInt("selectedBackground", 0);
-    }
-
-    private void saveSelectedBackground(int backgroundIndex) {
-        preferences.edit().putInt("selectedBackground", backgroundIndex).apply();
-    }
-
-    private void setAppTheme(int backgroundIndex) {
-        if (backgroundIndex == 0) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
+    @Override
+    public void onPause() {
+        super.onPause();
+        unregisterLightSensor();
     }
 
     private void initializeLightSensor() {
@@ -125,22 +86,27 @@ public class SecondFragment extends Fragment implements SensorEventListener {
         }
     }
 
+    private void unregisterLightSensor() {
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
             float lightLevel = event.values[0];
 
             if (lightLevel < 10) {
-                setAppTheme(1);
-            } else {
-                setAppTheme(0);
+                // Tutaj możesz ewentualnie dodatkowo zareagować na zmianę światła,
+                // np. zmienić kolor tła lub wykonać inne działania
             }
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Nie przydatne ale jak wywalę to jest error więc zostawię :)
+        // Nieprzydatne, ale zostawiam dla kompletności
     }
 
     private void openFilePickerForMp3() {
@@ -160,7 +126,7 @@ public class SecondFragment extends Fragment implements SensorEventListener {
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
             if (uri != null) {
-                selectedMp3Uri = uri.toString();
+                String selectedMp3Uri = uri.toString();
                 Toast.makeText(requireContext(), "Wybrano plik MP3: " + uri.toString(), Toast.LENGTH_SHORT).show();
             }
         }

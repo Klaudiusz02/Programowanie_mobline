@@ -27,6 +27,16 @@
         <receiver android:name=".AlarmReceiver"
             android:enabled="true"
             android:exported="false">
+        </receiver>
+
+        <service
+            android:name=".NotificationService"
+            android:exported="false" />
+
+
+        <receiver android:name=".ReminderReceiver"
+            android:enabled="true"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
@@ -45,6 +55,7 @@
 
 
 
+
     </application>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -55,7 +66,9 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.sensor.light" android:required="false" />
 
 

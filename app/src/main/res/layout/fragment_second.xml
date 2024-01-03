@@ -4,16 +4,6 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-
-    <Button
-        android:id="@+id/buttonChooseBackground"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Wybierz Motyw Tła"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:layout_marginBottom="16dp"/>
-
     <Button
         android:id="@+id/buttonAddCustomAlarm"
         android:layout_width="match_parent"
@@ -21,5 +11,24 @@
         android:text="Dodaj Własny Dźwięk"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
-        android:layout_below="@id/buttonChooseBackground"/>
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/buttonSetReminderTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ustaw czas powiadomienia"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/buttonAddCustomAlarm"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/buttonCancelReminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Anuluj"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/buttonSetReminderTime"/>
 </RelativeLayout>
