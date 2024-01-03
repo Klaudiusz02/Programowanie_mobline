@@ -1,39 +1,25 @@
 package com.example.budzik;
 
-import static android.app.PendingIntent.getActivity;
-
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
 import com.example.budzik.databinding.ActivityMainBinding;
-import android.view.Menu;
-import android.view.MenuItem;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.core.view.WindowCompat;
-import com.example.budzik.R;
 import com.google.android.material.navigation.NavigationView;
-import android.view.MenuItem;
-import android.widget.TimePicker;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
@@ -56,22 +42,6 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_sleep) {
-                NavHostFragment.findNavController(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main))
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-            } else if (id == R.id.nav_alarm) {
-                NavHostFragment.findNavController(getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main))
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
-            }
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
-
-        // Inicjalizacja sensora światła
         initializeLightSensor();
     }
 
@@ -115,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void unregisterLightSensor() {
         if (sensorManager != null) {
             sensorManager.unregisterListener((SensorEventListener) null);
@@ -144,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            // Przechodzenie do drugiego fragmentu
+            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+            navController.navigate(R.id.action_FirstFragment_to_SecondFragment);
             return true;
         }
         return super.onOptionsItemSelected(item);
