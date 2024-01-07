@@ -10,8 +10,8 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.PowerManager;
 import android.provider.Settings;
-import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -79,8 +79,23 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             mChannel.setSound(Settings.System.DEFAULT_NOTIFICATION_URI, attributes);
 
+            // Dodaj ustawienie, które pozwala na wybudzenie urządzenia przy nowym powiadomieniu
+            mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+
             if (notificationManager != null)
                 notificationManager.createNotificationChannel(mChannel);
+        }
+
+        // Utwórz wake lock, aby rozświetlić ekran
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = null;
+        if (powerManager != null) {
+            wakeLock = powerManager.newWakeLock(
+                    PowerManager.FULL_WAKE_LOCK |
+                            PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                            PowerManager.ON_AFTER_RELEASE, "AlarmReceiver::WakeLockTag"
+            );
+            wakeLock.acquire(10 * 60 * 1000L /* 10 minutes */);
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
@@ -91,16 +106,15 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(false)
                 .setOngoing(true)
-
-                // Ustaw dźwięk powiadomienia
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-
-                // Dodaj akcję dla przycisku Drzemka
                 .addAction(R.drawable.baseline_add_24, "Drzemka", snoozePendingIntent)
-
-                // Dodaj akcję dla przycisku Wyłącz
                 .addAction(R.drawable.baseline_add_24, "Wyłącz", dismissPendingIntent);
 
         notificationManager.notify(1, builder.build());
+
+        // Zwolnij wake lock po wyświetleniu powiadomienia
+        if (wakeLock != null) {
+            wakeLock.release();
+        }
     }
 }
