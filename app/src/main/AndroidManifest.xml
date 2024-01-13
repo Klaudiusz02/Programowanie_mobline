@@ -30,11 +30,12 @@
         </receiver>
 
         <service
-            android:name=".NotificationService"
+            android:name=".AccelerometerService"
+            android:enabled="true"
             android:exported="false" />
 
 
-        <receiver android:name=".ReminderReceiver"
+        <receiver android:name=".Acc"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -70,6 +71,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.sensor.light" android:required="false" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+
 
 
 </manifest>

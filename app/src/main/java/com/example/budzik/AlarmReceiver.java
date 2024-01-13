@@ -97,6 +97,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             );
             wakeLock.acquire(10 * 60 * 1000L /* 10 minutes */);
         }
+        long[] vibrationPattern = {0, 2000, 1000, 2000};
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
@@ -106,6 +107,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(false)
                 .setOngoing(true)
+                .setVibrate(vibrationPattern)
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .addAction(R.drawable.baseline_add_24, "Drzemka", snoozePendingIntent)
                 .addAction(R.drawable.baseline_add_24, "Wyłącz", dismissPendingIntent);
