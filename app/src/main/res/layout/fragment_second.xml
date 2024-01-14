@@ -2,33 +2,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/secondFragment"
     android:padding="16dp">
 
     <Button
-        android:id="@+id/buttonAddCustomAlarm"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Dodaj Własny Dźwięk"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:layout_marginBottom="16dp"/>
+        android:id="@+id/login"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true"
+        android:text="ZALOGUJ"
+        android:background="@drawable/rounded_button"
+        android:textSize="30sp"
 
-    <Button
-        android:id="@+id/buttonSetReminderTime"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ustaw czas powiadomienia"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:layout_below="@id/buttonAddCustomAlarm"
-        android:layout_marginBottom="16dp"/>
-
-    <Button
-        android:id="@+id/buttonCancelReminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Anuluj"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:layout_below="@id/buttonSetReminderTime"/>
+        android:textColor="@android:color/white"/>
 </RelativeLayout>

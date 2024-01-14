@@ -1,36 +1,33 @@
 package com.example.budzik;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.budzik.databinding.FragmentSecondBinding;
 
-public class SecondFragment extends Fragment implements SensorEventListener {
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+public class SecondFragment extends Fragment {
 
     private FragmentSecondBinding binding;
     private SharedPreferences preferences;
-    private SensorManager sensorManager;
-    private Sensor lightSensor;
+
+    private Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
     public View onCreateView(
@@ -43,92 +40,88 @@ public class SecondFragment extends Fragment implements SensorEventListener {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        // Usuń kod związany z ustawianiem motywu
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        AppCompatActivity activity = (AppCompatActivity) requireActivity();
-        androidx.appcompat.app.ActionBar actionBar = activity.getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(false);
-        }
+        setHasOptionsMenu(true);
 
-        Button buttonAddCustomAlarm = view.findViewById(R.id.buttonAddCustomAlarm);
-        buttonAddCustomAlarm.setOnClickListener(v -> openFilePickerForMp3());
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        initializeLightSensor();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        unregisterLightSensor();
-    }
-
-    private void initializeLightSensor() {
-        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
-        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-
-        if (lightSensor != null) {
-            sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        } else {
-            Toast.makeText(requireContext(), "Brak sensora światła", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void unregisterLightSensor() {
-        if (sensorManager != null) {
-            sensorManager.unregisterListener(this);
-        }
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
-            float lightLevel = event.values[0];
-
-            if (lightLevel < 10) {
-                // Tutaj możesz ewentualnie dodatkowo zareagować na zmianę światła,
-                // np. zmienić kolor tła lub wykonać inne działania
+        binding.login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isFingerprintAvailable()) {
+                    showBiometricPrompt();
+                } else {
+                    Toast.makeText(requireContext(), "Czytnik linii papilarnych niedostępny.", Toast.LENGTH_SHORT).show();
+                }
             }
+        });
+    }
+
+    private boolean isFingerprintAvailable() {
+        BiometricManager biometricManager = BiometricManager.from(requireContext());
+
+        int result = biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL);
+
+        boolean isAvailable = false;
+
+        switch (result) {
+            case BiometricManager.BIOMETRIC_SUCCESS:
+                isAvailable = true;
+                break;
+            case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
+            case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
+            case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
+                Toast.makeText(requireContext(), "Czytnik linii papilarnych niedostępny.", Toast.LENGTH_SHORT).show();
+                break;
         }
+
+        return isAvailable;
+    }
+
+    private void showBiometricPrompt() {
+        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle("WakeUpCall")
+                .setDescription("Użyj odcisku palca aby się zalogować")
+                .setDeviceCredentialAllowed(true)
+                .setConfirmationRequired(true)
+                .build();
+
+        BiometricPrompt biometricPrompt = new BiometricPrompt(requireActivity(), executor,
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationError(int errorCode, CharSequence errString) {
+                        super.onAuthenticationError(errorCode, errString);
+
+                    }
+                    public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                        requireActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
+                                navController.navigate(R.id.action_SecondFragment_to_FirstFragment);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        super.onAuthenticationFailed();
+                    }
+                });
+
+        biometricPrompt.authenticate(promptInfo);
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Nieprzydatne, ale zostawiam dla kompletności
-    }
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
 
-    private void openFilePickerForMp3() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("audio/*");
-        String[] mimeTypes = {"audio/mpeg", "audio/*"};
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-
-        startActivityForResult(intent, 1);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                String selectedMp3Uri = uri.toString();
-                Toast.makeText(requireContext(), "Wybrano plik MP3: " + uri.toString(), Toast.LENGTH_SHORT).show();
-            }
+        // Ukryj element menu o ID action_settings w SecondFragment
+        MenuItem logoutMenuItem = menu.findItem(R.id.action_settings);
+        if (logoutMenuItem != null) {
+            logoutMenuItem.setVisible(false);
         }
     }
 }
