@@ -53,6 +53,18 @@ public class AlarmActionReceiver extends BroadcastReceiver implements SensorEven
     private void handleSnooze(Context context, String alarmTime) {
 
         Toast.makeText(context, "Alarm z godziny " + alarmTime + " zostanie przesunięty o 5 minut.", Toast.LENGTH_SHORT).show();
+        setAlarm(context, alarmTime);
+
+        if (mediaPlayerCallback != null) {
+            // Invoke the callback to stop the MediaPlayer
+            mediaPlayerCallback.stopMediaPlayer();
+        }
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            // Anuluj powiadomienie o określonym ID (1 w tym przypadku)
+            notificationManager.cancel(1);
+        }
     }
 
     private void handleDismiss(Context context, String alarmTime) {
@@ -82,6 +94,28 @@ public class AlarmActionReceiver extends BroadcastReceiver implements SensorEven
         }
     }
 
+    private void setAlarm(Context context, String alarmTime) {
+        Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+        alarmIntent.putExtra("ALARM_TIME", alarmTime);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Ustaw alarm za pomocą AlarmManager
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.MINUTE, 2);
+            calendar.set(Calendar.SECOND, 0);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            } else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            }
+        }
+    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
