@@ -18,10 +18,12 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     private static MediaPlayer mediaPlayer;
     private static AlarmActionReceiver alarmActionReceiver;
+    private static String currentAlarmTime;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String alarmTime = intent.getStringExtra("ALARM_TIME");
+        currentAlarmTime = alarmTime;
 
         // Inicjalizuj AlarmActionReceiver tylko raz
         if (alarmActionReceiver == null) {
@@ -101,7 +103,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Budzik")
+                .setContentTitle("WakeUpCall")
                 .setContentText("Czas na budzenie! Godzina: " + alarmTime)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setDefaults(Notification.DEFAULT_ALL)
